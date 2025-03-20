@@ -12,34 +12,34 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeInAnimation;
-  late Animation<double> _scaleAnimation;
+  late AnimationController controller;
+  late Animation<double> fadeInAnimation;
+  late Animation<double> scaleAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
     );
 
-    _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
+        parent: controller,
         curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
-        parent: _controller,
+        parent: controller,
         curve: const Interval(0.3, 0.8, curve: Curves.elasticOut),
       ),
     );
 
-    _controller.forward().then((_) {
+    controller.forward().then((_) {
       // Wait a bit after animation completes
       Future.delayed(const Duration(milliseconds: 500), () {
         widget.onAnimationComplete();
@@ -49,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -61,16 +61,16 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: theme.colorScheme.primary,
       body: Center(
         child: AnimatedBuilder(
-          animation: _controller,
+          animation: controller,
           builder: (context, child) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Logo with fade-in and scale animation
                 FadeTransition(
-                  opacity: _fadeInAnimation,
+                  opacity: fadeInAnimation,
                   child: ScaleTransition(
-                    scale: _scaleAnimation,
+                    scale: scaleAnimation,
                     child: SvgPicture.asset(
                       'assets/images/app_logo.svg',
                       width: 150,
@@ -82,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // App name with fade-in animation
                 FadeTransition(
-                  opacity: _fadeInAnimation,
+                  opacity: fadeInAnimation,
                   child: Text(
                     'BlueTick',
                     style: theme.textTheme.headlineMedium?.copyWith(
@@ -97,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // Animated loader
                 FadeTransition(
-                  opacity: _fadeInAnimation,
+                  opacity: fadeInAnimation,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 40),
                     child: CircularProgressIndicator.adaptive(

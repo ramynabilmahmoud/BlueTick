@@ -3,14 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/todo.dart';
+import '../widgets/add_task_dialog.dart';
+import '../widgets/task_card.dart';
 
 class TodoScreen extends StatefulWidget {
   final List<Todo> todos;
   final bool isDarkMode;
   final VoidCallback toggleTheme;
-  final Function(String) addTodo;
+  final Function(String, Priority) addTodo;
   final Function(String) toggleTodoStatus;
   final Function(String) deleteTodo;
+  final Function(String, Priority) updatePriority;
+  final Function(String) setSearchQuery;
+  final Function(String, String, Priority) updateTodo;
+  final Function(BuildContext) navigateToScheduledTasks;
+  final Function(BuildContext) navigateToCompletedTasks;
 
   const TodoScreen({
     super.key,
@@ -20,6 +27,11 @@ class TodoScreen extends StatefulWidget {
     required this.addTodo,
     required this.toggleTodoStatus,
     required this.deleteTodo,
+    required this.updatePriority,
+    required this.setSearchQuery,
+    required this.updateTodo,
+    required this.navigateToScheduledTasks,
+    required this.navigateToCompletedTasks,
   });
 
   @override
@@ -28,28 +40,27 @@ class TodoScreen extends StatefulWidget {
 
 class _TodoScreenState extends State<TodoScreen>
     with SingleTickerProviderStateMixin {
-  final _controller = TextEditingController();
-  late AnimationController _animationController;
-  late Animation<double> _animation;
+  final controller = TextEditingController();
+  late AnimationController animationController;
+  late Animation<double> animation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+    animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _animation = CurvedAnimation(
-      parent: _animationController,
+    animation = CurvedAnimation(
+      parent: animationController,
       curve: Curves.easeInOut,
     );
-    _animationController.forward();
+    animationController.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _animationController.dispose();
+    animationController.dispose();
     super.dispose();
   }
 
@@ -58,9 +69,11 @@ class _TodoScreenState extends State<TodoScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Sort todos to show incomplete ones first
+    // Sort todos by priority (high first)
     final incompleteTodos =
-        widget.todos.where((todo) => !todo.isCompleted).toList();
+        widget.todos.where((todo) => !todo.isCompleted).toList()
+          ..sort((a, b) => a.priority.index.compareTo(b.priority.index));
+
     final completedTodos =
         widget.todos.where((todo) => todo.isCompleted).toList();
 
@@ -78,6 +91,147 @@ class _TodoScreenState extends State<TodoScreen>
           ),
         ),
       ),
+      drawer: Drawer(
+        child: Container(
+          color: colorScheme.surface,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/images/app_logo.svg',
+                          width: 64,
+                          height: 64,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Task Manager',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Manage your tasks efficiently',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer.withAlpha(
+                              179,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: Icon(Icons.home_rounded, color: colorScheme.primary),
+                  title: const Text('Home'),
+                  selected: true,
+                  selectedTileColor: colorScheme.primaryContainer.withAlpha(77),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.schedule_rounded,
+                    color: colorScheme.secondary,
+                  ),
+                  title: const Text('Scheduled Tasks'),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.navigateToScheduledTasks(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.check_circle_rounded,
+                    color: colorScheme.tertiary,
+                  ),
+                  title: const Text('Completed Tasks'),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.navigateToCompletedTasks(context);
+                  },
+                ),
+                const Spacer(),
+                const Divider(),
+                ListTile(
+                  leading: Icon(
+                    widget.isDarkMode
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    color: widget.isDarkMode ? Colors.amber : Colors.indigo,
+                  ),
+                  title: Text(widget.isDarkMode ? 'Light Mode' : 'Dark Mode'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.toggleTheme();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      floatingActionButton: AnimatedScale(
+        duration: const Duration(milliseconds: 200),
+        scale: 1.0,
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            showDialog<void>(
+              context: context,
+              builder: (context) {
+                return AddTaskDialog(
+                  onAddTask: (title, priority) {
+                    widget.addTodo(title, priority);
+                  },
+                );
+              },
+            );
+          },
+          backgroundColor: colorScheme.primaryContainer,
+          foregroundColor: colorScheme.onPrimaryContainer,
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          icon: const Icon(Icons.add),
+          label: const Text('Add Task'),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -105,16 +259,31 @@ class _TodoScreenState extends State<TodoScreen>
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: Icon(
-                        widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                        size: 28,
-                      ),
-                      onPressed: widget.toggleTheme,
-                      tooltip:
-                          widget.isDarkMode
-                              ? 'Switch to light mode'
-                              : 'Switch to dark mode',
+                    Row(
+                      children: [
+                        Builder(
+                          builder:
+                              (context) => IconButton(
+                                icon: const Icon(Icons.menu),
+                                onPressed: () {
+                                  Scaffold.of(context).openDrawer();
+                                },
+                              ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            widget.isDarkMode
+                                ? Icons.light_mode
+                                : Icons.dark_mode,
+                            size: 28,
+                          ),
+                          onPressed: widget.toggleTheme,
+                          tooltip:
+                              widget.isDarkMode
+                                  ? 'Switch to light mode'
+                                  : 'Switch to dark mode',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -126,19 +295,10 @@ class _TodoScreenState extends State<TodoScreen>
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                 child: TextField(
-                  controller: _controller,
+                  controller: controller,
                   decoration: InputDecoration(
-                    hintText: 'Add a new task...',
+                    hintText: 'Search tasks...',
                     prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.add_circle),
-                      onPressed: () {
-                        if (_controller.text.isNotEmpty) {
-                          widget.addTodo(_controller.text);
-                          _controller.clear();
-                        }
-                      },
-                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -149,11 +309,8 @@ class _TodoScreenState extends State<TodoScreen>
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  onSubmitted: (value) {
-                    if (value.isNotEmpty) {
-                      widget.addTodo(value);
-                      _controller.clear();
-                    }
+                  onChanged: (value) {
+                    widget.setSearchQuery(value);
                   },
                 ),
               ),
@@ -164,12 +321,17 @@ class _TodoScreenState extends State<TodoScreen>
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  child: Text(
-                    'Active Tasks',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Active Tasks',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -180,17 +342,26 @@ class _TodoScreenState extends State<TodoScreen>
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final todo = incompleteTodos[index];
                   return FadeTransition(
-                    opacity: _animation,
+                    opacity: animation,
                     child: SlideTransition(
                       position: Tween<Offset>(
                         begin: const Offset(0.5, 0),
                         end: Offset.zero,
-                      ).animate(_animation),
-                      child: TaskCard(
-                        todo: todo,
-                        toggleStatus: widget.toggleTodoStatus,
-                        deleteTodo: widget.deleteTodo,
-                        colorScheme: colorScheme,
+                      ).animate(animation),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        child: TaskCard(
+                          todo: todo,
+                          toggleStatus: widget.toggleTodoStatus,
+                          deleteTodo: widget.deleteTodo,
+                          onPriorityChanged: (newPriority) {
+                            widget.updatePriority(todo.id, newPriority);
+                          },
+                          onUpdateTask: widget.updateTodo,
+                        ),
                       ),
                     ),
                   );
@@ -203,7 +374,7 @@ class _TodoScreenState extends State<TodoScreen>
                 hasScrollBody: false,
                 child: Center(
                   child: FadeTransition(
-                    opacity: _animation,
+                    opacity: animation,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -238,6 +409,7 @@ class _TodoScreenState extends State<TodoScreen>
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Completed',
@@ -246,22 +418,10 @@ class _TodoScreenState extends State<TodoScreen>
                           color: colorScheme.tertiary,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.tertiary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${completedTodos.length}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      Text(
+                        '${completedTodos.length}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withAlpha(153),
                         ),
                       ),
                     ],
@@ -274,12 +434,20 @@ class _TodoScreenState extends State<TodoScreen>
               SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final todo = completedTodos[index];
-                  return TaskCard(
-                    todo: todo,
-                    toggleStatus: widget.toggleTodoStatus,
-                    deleteTodo: widget.deleteTodo,
-                    colorScheme: colorScheme,
-                    isCompleted: true,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    child: TaskCard(
+                      todo: todo,
+                      toggleStatus: widget.toggleTodoStatus,
+                      deleteTodo: widget.deleteTodo,
+                      onPriorityChanged: (newPriority) {
+                        widget.updatePriority(todo.id, newPriority);
+                      },
+                      onUpdateTask: widget.updateTodo,
+                    ),
                   );
                 }, childCount: completedTodos.length),
               ),
@@ -287,114 +455,6 @@ class _TodoScreenState extends State<TodoScreen>
             // Bottom Space for FAB
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// Extracted Task Card widget for better organization
-class TaskCard extends StatelessWidget {
-  final Todo todo;
-  final Function(String) toggleStatus;
-  final Function(String) deleteTodo;
-  final ColorScheme colorScheme;
-  final bool isCompleted;
-
-  const TaskCard({
-    super.key,
-    required this.todo,
-    required this.toggleStatus,
-    required this.deleteTodo,
-    required this.colorScheme,
-    this.isCompleted = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: Dismissible(
-        key: Key(todo.id),
-        background: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: colorScheme.errorContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.centerRight,
-          child: Icon(
-            Icons.delete_outline,
-            color: colorScheme.onErrorContainer,
-            size: 28,
-          ),
-        ),
-        direction: DismissDirection.endToStart,
-        onDismissed: (_) => deleteTodo(todo.id),
-        child: Container(
-          decoration: BoxDecoration(
-            color:
-                isCompleted
-                    ? colorScheme.surfaceContainerHighest.withAlpha(128)
-                    : colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(8),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            leading: InkWell(
-              onTap: () => toggleStatus(todo.id),
-              customBorder: const CircleBorder(),
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color:
-                        isCompleted
-                            ? colorScheme.tertiary
-                            : colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                child:
-                    isCompleted
-                        ? Icon(
-                          Icons.check,
-                          size: 18,
-                          color: colorScheme.tertiary,
-                        )
-                        : const SizedBox(width: 18, height: 18),
-              ),
-            ),
-            title: Text(
-              todo.title,
-              style: TextStyle(
-                fontWeight: isCompleted ? FontWeight.normal : FontWeight.w500,
-                decoration: isCompleted ? TextDecoration.lineThrough : null,
-                color:
-                    isCompleted
-                        ? colorScheme.onSurface.withAlpha(153)
-                        : colorScheme.onSurface,
-              ),
-            ),
-            trailing: IconButton(
-              icon: Icon(
-                isCompleted ? Icons.refresh : Icons.check_circle_outline,
-                color: isCompleted ? colorScheme.tertiary : colorScheme.primary,
-              ),
-              onPressed: () => toggleStatus(todo.id),
-            ),
-          ),
         ),
       ),
     );

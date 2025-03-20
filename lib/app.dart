@@ -5,11 +5,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/todo.dart';
-import 'repositories/theme_repository.dart';
 import 'repositories/todo_repository.dart';
+import 'screens/completed_tasks_screen.dart';
+import 'screens/scheduled_tasks_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/todo_screen.dart';
-import 'services/todo_service.dart';
 import 'theme/app_theme.dart';
 
 class TodoApp extends StatefulWidget {
@@ -22,115 +22,168 @@ class TodoApp extends StatefulWidget {
 class TodoAppState extends State<TodoApp> {
   // Dependencies
   final todoRepository = TodoRepository();
-  final themeRepository = ThemeRepository();
-  late TodoService todoService;
 
   // State
   bool isDarkMode = false;
   List<Todo> todos = [];
   bool isLoading = true;
   bool showSplash = true;
+  String searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    todoService = TodoService(todoRepository);
-    loadAppResources();
+    _loadAppResources();
   }
 
-  Future<void> loadAppResources() async {
+  Future<void> _loadAppResources() async {
     // Load both theme and todos in parallel
-    await Future.wait([loadThemePreference(), loadTodos()]);
+    await Future.wait([_loadThemePreference(), _loadTodos()]);
 
     // Set loading to false once all resources are loaded
-    if (mounted) {
-      setState(() {
-        isLoading = false;
-      });
-    }
-
-    // Note: We don't dismiss the splash screen here - it will
-    // complete its animation first, then show the main screen
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  Future<void> loadThemePreference() async {
+  Future<void> _loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        isDarkMode = prefs.getBool('isDarkMode') ?? false;
-      });
-    }
+    setState(() {
+      isDarkMode = prefs.getBool('isDarkMode') ?? false;
+    });
   }
 
   Future<void> toggleTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        isDarkMode = !isDarkMode;
-        prefs.setBool('isDarkMode', isDarkMode);
-      });
-    }
+    setState(() {
+      isDarkMode = !isDarkMode;
+      prefs.setBool('isDarkMode', isDarkMode);
+    });
   }
 
-  Future<void> loadTodos() async {
+  Future<void> _loadTodos() async {
     final prefs = await SharedPreferences.getInstance();
     final todoList = prefs.getStringList('todos') ?? [];
 
-    if (mounted) {
-      setState(() {
-        todos =
-            todoList
-                .map((todoJson) => Todo.fromJson(jsonDecode(todoJson)))
-                .toList();
-      });
-    }
+    setState(() {
+      todos =
+          todoList
+              .map((todoJson) => Todo.fromJson(jsonDecode(todoJson)))
+              .toList();
+    });
   }
 
-  Future<void> saveTodos() async {
+  Future<void> _saveTodos() async {
     final prefs = await SharedPreferences.getInstance();
     final todoList = todos.map((todo) => jsonEncode(todo.toJson())).toList();
     await prefs.setStringList('todos', todoList);
   }
 
-  void addTodo(String title) {
+  void _addTodo(String title, Priority priority) {
     final newTodo = Todo(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
+      priority: priority,
     );
-    if (mounted) {
-      setState(() {
-        todos.add(newTodo);
-      });
-    }
-    saveTodos();
+    setState(() {
+      todos.add(newTodo);
+    });
+    _saveTodos();
   }
 
-  void toggleTodoStatus(String id) {
+  void _toggleTodoStatus(String id) {
     final todoIndex = todos.indexWhere((todo) => todo.id == id);
     if (todoIndex >= 0) {
-      if (mounted) {
-        setState(() {
-          todos[todoIndex].isCompleted = !todos[todoIndex].isCompleted;
-        });
-      }
-      saveTodos();
+      setState(() {
+        todos[todoIndex].isCompleted = !todos[todoIndex].isCompleted;
+      });
+      _saveTodos();
     }
   }
 
   void deleteTodo(String id) {
-    if (mounted) {
+    setState(() {
+      todos.removeWhere((todo) => todo.id == id);
+    });
+    _saveTodos();
+  }
+
+  void _updateTodoPriority(String id, Priority priority) {
+    final todoIndex = todos.indexWhere((todo) => todo.id == id);
+    if (todoIndex >= 0) {
       setState(() {
-        todos.removeWhere((todo) => todo.id == id);
+        todos[todoIndex].priority = priority;
       });
+      _saveTodos();
     }
-    saveTodos();
+  }
+
+  void _setSearchQuery(String query) {
+    setState(() {
+      searchQuery = query;
+    });
+  }
+
+  List<Todo> get filteredTodos {
+    if (searchQuery.isEmpty) {
+      return todos;
+    }
+
+    return todos
+        .where(
+          (todo) =>
+              todo.title.toLowerCase().contains(searchQuery.toLowerCase()),
+        )
+        .toList();
   }
 
   void onSplashComplete() {
-    if (mounted) {
+    setState(() {
+      showSplash = false;
+    });
+  }
+
+  void navigateToScheduledTasks(BuildContext context) {
+    final pendingTodos = todos.where((todo) => !todo.isCompleted).toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => ScheduledTasksScreen(
+              pendingTodos: pendingTodos,
+              isDarkMode: isDarkMode,
+              toggleTodoStatus: _toggleTodoStatus,
+              deleteTodo: deleteTodo,
+              updatePriority: _updateTodoPriority,
+            ),
+      ),
+    );
+  }
+
+  void navigateToCompletedTasks(BuildContext context) {
+    final completedTodos = todos.where((todo) => todo.isCompleted).toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => CompletedTasksScreen(
+              completedTodos: completedTodos,
+              isDarkMode: isDarkMode,
+              toggleTodoStatus: _toggleTodoStatus,
+              deleteTodo: deleteTodo,
+            ),
+      ),
+    );
+  }
+
+  void updateTodo(String id, String newTitle, Priority newPriority) {
+    final todoIndex = todos.indexWhere((todo) => todo.id == id);
+    if (todoIndex >= 0) {
       setState(() {
-        showSplash = false;
+        todos[todoIndex].title = newTitle;
+        todos[todoIndex].priority = newPriority;
       });
+      _saveTodos();
     }
   }
 
@@ -167,12 +220,17 @@ class TodoAppState extends State<TodoApp> {
                     ),
                   )
                   : TodoScreen(
-                    todos: todos,
+                    todos: filteredTodos,
                     isDarkMode: isDarkMode,
                     toggleTheme: toggleTheme,
-                    addTodo: addTodo,
-                    toggleTodoStatus: toggleTodoStatus,
+                    addTodo: _addTodo,
+                    toggleTodoStatus: _toggleTodoStatus,
                     deleteTodo: deleteTodo,
+                    updatePriority: _updateTodoPriority,
+                    setSearchQuery: _setSearchQuery,
+                    updateTodo: updateTodo,
+                    navigateToScheduledTasks: navigateToScheduledTasks,
+                    navigateToCompletedTasks: navigateToCompletedTasks,
                   )),
     );
   }
