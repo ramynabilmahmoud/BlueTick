@@ -1,10 +1,14 @@
+import 'package:bluetick/widgets/completed_tasks_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/todo.dart';
+import '../widgets/active_tasks_section.dart';
 import '../widgets/add_task_dialog.dart';
-import '../widgets/task_card.dart';
+import '../widgets/empty_state_widget.dart';
+import '../widgets/todo_drawer.dart';
+import '../widgets/todo_header.dart';
+import '../widgets/todo_search_bar.dart';
 
 class TodoScreen extends StatefulWidget {
   final List<Todo> todos;
@@ -66,6 +70,9 @@ class _TodoScreenState extends State<TodoScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Get the current orientation
+    final orientation = MediaQuery.of(context).orientation;
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -79,383 +86,118 @@ class _TodoScreenState extends State<TodoScreen>
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0),
-        child: AppBar(
-          backgroundColor: colorScheme.surface,
-          elevation: 0,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness:
-                widget.isDarkMode ? Brightness.light : Brightness.dark,
-          ),
-        ),
+      appBar: _buildAppBar(colorScheme),
+      drawer: TodoDrawer(
+        isDarkMode: widget.isDarkMode,
+        toggleTheme: widget.toggleTheme,
+        navigateToScheduledTasks: widget.navigateToScheduledTasks,
+        navigateToCompletedTasks: widget.navigateToCompletedTasks,
       ),
-      drawer: Drawer(
-        child: Container(
-          color: colorScheme.surface,
-          child: SafeArea(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
-                    ),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/app_logo.svg',
-                          width: 64,
-                          height: 64,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Task Manager',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Manage your tasks efficiently',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onPrimaryContainer.withAlpha(
-                              179,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      floatingActionButton: _buildAddTaskButton(context, colorScheme),
+      floatingActionButtonLocation:
+          orientation == Orientation.portrait
+              ? FloatingActionButtonLocation.centerFloat
+              : FloatingActionButtonLocation.endFloat,
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          return SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                // App Header
+                TodoHeader(
+                  incompleteTodosCount: incompleteTodos.length,
+                  isDarkMode: widget.isDarkMode,
+                  toggleTheme: widget.toggleTheme,
                 ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: Icon(Icons.home_rounded, color: colorScheme.primary),
-                  title: const Text('Home'),
-                  selected: true,
-                  selectedTileColor: colorScheme.primaryContainer.withAlpha(77),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(50),
-                      bottomRight: Radius.circular(50),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
+
+                // Search Bar
+                TodoSearchBar(
+                  controller: controller,
+                  orientation: orientation,
+                  colorScheme: colorScheme,
+                  onChanged: widget.setSearchQuery,
                 ),
-                ListTile(
-                  leading: Icon(
-                    Icons.schedule_rounded,
-                    color: colorScheme.secondary,
+
+                // Active Tasks Section
+                if (incompleteTodos.isNotEmpty)
+                  ActiveTasksSection(
+                    incompleteTodos: incompleteTodos,
+                    animation: animation,
+                    orientation: orientation,
+                    toggleTodoStatus: widget.toggleTodoStatus,
+                    deleteTodo: widget.deleteTodo,
+                    updatePriority: widget.updatePriority,
+                    updateTodo: widget.updateTodo,
                   ),
-                  title: const Text('Scheduled Tasks'),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(50),
-                      bottomRight: Radius.circular(50),
-                    ),
+
+                // Empty State
+                if (widget.todos.isEmpty)
+                  EmptyStateWidget(
+                    animation: animation,
+                    theme: theme,
+                    colorScheme: colorScheme,
                   ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.navigateToScheduledTasks(context);
-                  },
-                ),
-                ListTile(
-                  leading: Icon(
-                    Icons.check_circle_rounded,
-                    color: colorScheme.tertiary,
+
+                // Completed Tasks Section
+                if (completedTodos.isNotEmpty)
+                  CompletedTasksSection(
+                    completedTodos: completedTodos,
+                    toggleTodoStatus: widget.toggleTodoStatus,
+                    deleteTodo: widget.deleteTodo,
+                    updatePriority: widget.updatePriority,
+                    updateTodo: widget.updateTodo,
+                    colorScheme: colorScheme,
+                    theme: theme,
                   ),
-                  title: const Text('Completed Tasks'),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(50),
-                      bottomRight: Radius.circular(50),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.navigateToCompletedTasks(context);
-                  },
-                ),
-                const Spacer(),
-                const Divider(),
-                ListTile(
-                  leading: Icon(
-                    widget.isDarkMode
-                        ? Icons.light_mode_rounded
-                        : Icons.dark_mode_rounded,
-                    color: widget.isDarkMode ? Colors.amber : Colors.indigo,
-                  ),
-                  title: Text(widget.isDarkMode ? 'Light Mode' : 'Dark Mode'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.toggleTheme();
-                  },
-                ),
+
+                // Bottom Space for FAB
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
               ],
             ),
-          ),
+          );
+        },
+      ),
+    );
+  }
+
+  PreferredSize _buildAppBar(ColorScheme colorScheme) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(0),
+      child: AppBar(
+        backgroundColor: colorScheme.surface,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              widget.isDarkMode ? Brightness.light : Brightness.dark,
         ),
       ),
-      floatingActionButton: AnimatedScale(
-        duration: const Duration(milliseconds: 200),
-        scale: 1.0,
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            showDialog<void>(
-              context: context,
-              builder: (context) {
-                return AddTaskDialog(
-                  onAddTask: (title, priority) {
-                    widget.addTodo(title, priority);
-                  },
-                );
-              },
-            );
-          },
-          backgroundColor: colorScheme.primaryContainer,
-          foregroundColor: colorScheme.onPrimaryContainer,
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          icon: const Icon(Icons.add),
-          label: const Text('Add Task'),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // App Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'My Tasks',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${incompleteTodos.length} remaining',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: colorScheme.onSurface.withAlpha(153),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Builder(
-                          builder:
-                              (context) => IconButton(
-                                icon: const Icon(Icons.menu),
-                                onPressed: () {
-                                  Scaffold.of(context).openDrawer();
-                                },
-                              ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            widget.isDarkMode
-                                ? Icons.light_mode
-                                : Icons.dark_mode,
-                            size: 28,
-                          ),
-                          onPressed: widget.toggleTheme,
-                          tooltip:
-                              widget.isDarkMode
-                                  ? 'Switch to light mode'
-                                  : 'Switch to dark mode',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    );
+  }
 
-            // Search Bar
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                child: TextField(
-                  controller: controller,
-                  decoration: InputDecoration(
-                    hintText: 'Search tasks...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest.withAlpha(
-                      128,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onChanged: (value) {
-                    widget.setSearchQuery(value);
-                  },
-                ),
-              ),
-            ),
-
-            // Section Label - Active Tasks
-            if (incompleteTodos.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Active Tasks',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // Active Tasks List
-            if (incompleteTodos.isNotEmpty)
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final todo = incompleteTodos[index];
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.5, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        child: TaskCard(
-                          todo: todo,
-                          toggleStatus: widget.toggleTodoStatus,
-                          deleteTodo: widget.deleteTodo,
-                          onPriorityChanged: (newPriority) {
-                            widget.updatePriority(todo.id, newPriority);
-                          },
-                          onUpdateTask: widget.updateTodo,
-                        ),
-                      ),
-                    ),
-                  );
-                }, childCount: incompleteTodos.length),
-              ),
-
-            // Empty State
-            if (widget.todos.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/images/empty_state.svg',
-                          width: 180,
-                          height: 180,
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'All Clear!',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add a task to get started',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface.withAlpha(153),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // Section Label - Completed Tasks
-            if (completedTodos.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Completed',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.tertiary,
-                        ),
-                      ),
-                      Text(
-                        '${completedTodos.length}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withAlpha(153),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // Completed Tasks List
-            if (completedTodos.isNotEmpty)
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final todo = completedTodos[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: TaskCard(
-                      todo: todo,
-                      toggleStatus: widget.toggleTodoStatus,
-                      deleteTodo: widget.deleteTodo,
-                      onPriorityChanged: (newPriority) {
-                        widget.updatePriority(todo.id, newPriority);
-                      },
-                      onUpdateTask: widget.updateTodo,
-                    ),
-                  );
-                }, childCount: completedTodos.length),
-              ),
-
-            // Bottom Space for FAB
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
-        ),
+  Widget _buildAddTaskButton(BuildContext context, ColorScheme colorScheme) {
+    return AnimatedScale(
+      duration: const Duration(milliseconds: 200),
+      scale: 1.0,
+      child: FloatingActionButton.extended(
+        onPressed: () {
+          showDialog<void>(
+            context: context,
+            builder: (context) {
+              return AddTaskDialog(
+                onAddTask: (title, priority) {
+                  widget.addTodo(title, priority);
+                },
+              );
+            },
+          );
+        },
+        backgroundColor: colorScheme.primaryContainer,
+        foregroundColor: colorScheme.onPrimaryContainer,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(Icons.add),
+        label: const Text('Add Task'),
       ),
     );
   }

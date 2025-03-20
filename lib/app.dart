@@ -62,15 +62,52 @@ class TodoAppState extends State<TodoApp> {
   }
 
   Future<void> _loadTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    final todoList = prefs.getStringList('todos') ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final todoList = prefs.getStringList('todos') ?? [];
 
-    setState(() {
-      todos =
-          todoList
-              .map((todoJson) => Todo.fromJson(jsonDecode(todoJson)))
-              .toList();
-    });
+      final loadedTodos = <Todo>[];
+
+      for (final todoJson in todoList) {
+        try {
+          final todo = Todo.fromJson(jsonDecode(todoJson));
+          loadedTodos.add(todo);
+        } catch (e) {
+          // Log the error but continue loading other todos
+          debugPrint('Error parsing todo: $e');
+          // Could also add error tracking or notification here
+        }
+      }
+
+      setState(() {
+        todos = loadedTodos;
+      });
+    } catch (e) {
+      debugPrint('Error loading todos: $e');
+      // Fallback to empty list if all loading fails
+      setState(() {
+        todos = [];
+      });
+      // Show error dialog to user
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Data Error'),
+                content: const Text(
+                  'There was an error loading your tasks. Some data may have been lost.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+        );
+      }
+    }
   }
 
   Future<void> _saveTodos() async {

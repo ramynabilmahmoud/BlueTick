@@ -42,6 +42,7 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -74,7 +75,10 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
         children: [
           // Search bar
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.symmetric(
+              horizontal: orientation == Orientation.portrait ? 16.0 : 24.0,
+              vertical: 8.0,
+            ),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search tasks...',
@@ -95,33 +99,36 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
             ),
           ),
 
-          // Task list
+          // Task list with different layout based on orientation
           Expanded(
             child:
-                sortedTodos.isEmpty
-                    ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.schedule,
-                            size: 80,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            searchQuery.isEmpty
-                                ? 'No scheduled tasks'
-                                : 'No tasks matching "$searchQuery"',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onSurface.withAlpha(153),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                    : ListView.builder(
+                orientation == Orientation.portrait
+                    ? ListView.builder(
                       padding: const EdgeInsets.all(16),
+                      itemCount: sortedTodos.length,
+                      itemBuilder: (context, index) {
+                        final todo = sortedTodos[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: TaskCard(
+                            todo: todo,
+                            toggleStatus: widget.toggleTodoStatus,
+                            deleteTodo: widget.deleteTodo,
+                            onPriorityChanged: widget.updatePriority,
+                          ),
+                        );
+                      },
+                    )
+                    : GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+
                       itemCount: sortedTodos.length,
                       itemBuilder: (context, index) {
                         final todo = sortedTodos[index];
@@ -129,9 +136,7 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
                           todo: todo,
                           toggleStatus: widget.toggleTodoStatus,
                           deleteTodo: widget.deleteTodo,
-                          onPriorityChanged: (newPriority) {
-                            widget.updatePriority(todo.id, newPriority);
-                          },
+                          onPriorityChanged: widget.updatePriority,
                         );
                       },
                     ),

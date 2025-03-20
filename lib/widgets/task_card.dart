@@ -7,7 +7,7 @@ class TaskCard extends StatelessWidget {
   final Todo todo;
   final Function(String) toggleStatus;
   final Function(String) deleteTodo;
-  final Function(Priority)? onPriorityChanged;
+  final Function(String, Priority)? onPriorityChanged;
   final Function(String, String, Priority)? onUpdateTask;
 
   const TaskCard({
