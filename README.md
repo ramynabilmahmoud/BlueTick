@@ -38,7 +38,7 @@ A clean, modern todo app built with Flutter featuring an intuitive UI, dark mode
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/bluetick.git
+   git clone https://github.com/ramynabilmahmoud/bluetick.git
    ```
 
 2. Navigate to the project directory:
@@ -59,65 +59,37 @@ A clean, modern todo app built with Flutter featuring an intuitive UI, dark mode
    flutter run
    ```
 
-## 🔧 Project Structure
-
-```
-lib/
-├── main.dart # App entry point
-├── models/
-│   └── task.dart # Task data model
-├── screens/
-│   ├── home_screen.dart # Main task list screen
-│   └── add_task.dart # New task creation screen
-├── widgets/
-│   ├── task_tile.dart # Individual task display
-│   ├── empty_state.dart # Empty state widget
-│   └── app_theme.dart # Theme configuration
-└── services/
-    └── storage_service.dart # Local data persistence
-```
-
 ## 🎨 Customization
 
 BlueTick supports extensive customization through the settings menu:
 
 - Change accent colors
-- Adjust animation speed
 - Configure notification preferences
 - Customize task categories
 
+Here's the corrected section of the README file based on your provided updates:
+
+---
+
+Here’s the updated section of the README file reflecting the use of **Stateful Widgets** for state management:
+
+---
+
 ## 🔄 State Management
 
-The app utilizes **Provider** for efficient state management, ensuring smooth performance even with numerous tasks.
+The app utilizes **Stateful Widgets** for state management, ensuring smooth performance even with numerous tasks.
 
 ## 💾 Storage
 
-Tasks are stored locally using **Hive**, a lightweight and fast NoSQL database solution for Flutter.
+Tasks are stored locally using **SharedPreferences**, a simple key-value storage solution for Flutter.
 
 ## 🛠️ Technologies Used
 
 - Flutter
 - Dart
-- Provider (State Management)
-- Hive (Local Storage)
-- Lottie (Animations)
+- **Stateful Widgets** (State Management)
+- **SharedPreferences** (Local Storage)
 
 ## 📃 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👥 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📞 Contact
-
-Your Name - [@yourusername](https://twitter.com/yourusername) - email@example.com
-
-Project Link: [https://github.com/yourusername/bluetick](https://github.com/yourusername/bluetick)
