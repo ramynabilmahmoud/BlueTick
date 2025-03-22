@@ -32,6 +32,11 @@ class TodoAppState extends State<TodoApp> {
   void initState() {
     super.initState();
     _loadAppResources();
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        showSplash = false;
+      });
+    });
   }
 
   Future<void> _loadAppResources() async {
