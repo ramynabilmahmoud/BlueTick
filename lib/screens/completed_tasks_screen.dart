@@ -25,7 +25,6 @@ class CompletedTasksScreen extends StatefulWidget {
 class _CompletedTasksScreenState extends State<CompletedTasksScreen> {
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -71,8 +70,7 @@ class _CompletedTasksScreenState extends State<CompletedTasksScreen> {
                   ],
                 ),
               )
-              : orientation == Orientation.portrait
-              ? ListView.builder(
+              : ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: widget.completedTodos.length,
                 itemBuilder: (context, index) {
@@ -84,24 +82,6 @@ class _CompletedTasksScreenState extends State<CompletedTasksScreen> {
                       toggleStatus: widget.toggleTodoStatus,
                       deleteTodo: widget.deleteTodo,
                     ),
-                  );
-                },
-              )
-              : GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: widget.completedTodos.length,
-                itemBuilder: (context, index) {
-                  final todo = widget.completedTodos[index];
-                  return TaskCard(
-                    todo: todo,
-                    toggleStatus: widget.toggleTodoStatus,
-                    deleteTodo: widget.deleteTodo,
                   );
                 },
               ),

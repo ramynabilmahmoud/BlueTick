@@ -70,9 +70,6 @@ class _TodoScreenState extends State<TodoScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Get the current orientation
-    final orientation = MediaQuery.of(context).orientation;
-
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -94,68 +91,59 @@ class _TodoScreenState extends State<TodoScreen>
         navigateToCompletedTasks: widget.navigateToCompletedTasks,
       ),
       floatingActionButton: _buildAddTaskButton(context, colorScheme),
-      floatingActionButtonLocation:
-          orientation == Orientation.portrait
-              ? FloatingActionButtonLocation.centerFloat
-              : FloatingActionButtonLocation.endFloat,
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          return SafeArea(
-            child: CustomScrollView(
-              slivers: [
-                // App Header
-                TodoHeader(
-                  incompleteTodosCount: incompleteTodos.length,
-                  isDarkMode: widget.isDarkMode,
-                  toggleTheme: widget.toggleTheme,
-                ),
-
-                // Search Bar
-                TodoSearchBar(
-                  controller: controller,
-                  orientation: orientation,
-                  colorScheme: colorScheme,
-                  onChanged: widget.setSearchQuery,
-                ),
-
-                // Active Tasks Section
-                if (incompleteTodos.isNotEmpty)
-                  ActiveTasksSection(
-                    incompleteTodos: incompleteTodos,
-                    animation: animation,
-                    orientation: orientation,
-                    toggleTodoStatus: widget.toggleTodoStatus,
-                    deleteTodo: widget.deleteTodo,
-                    updatePriority: widget.updatePriority,
-                    updateTodo: widget.updateTodo,
-                  ),
-
-                // Empty State
-                if (widget.todos.isEmpty)
-                  EmptyStateWidget(
-                    animation: animation,
-                    theme: theme,
-                    colorScheme: colorScheme,
-                  ),
-
-                // Completed Tasks Section
-                if (completedTodos.isNotEmpty)
-                  CompletedTasksSection(
-                    completedTodos: completedTodos,
-                    toggleTodoStatus: widget.toggleTodoStatus,
-                    deleteTodo: widget.deleteTodo,
-                    updatePriority: widget.updatePriority,
-                    updateTodo: widget.updateTodo,
-                    colorScheme: colorScheme,
-                    theme: theme,
-                  ),
-
-                // Bottom Space for FAB
-                const SliverToBoxAdapter(child: SizedBox(height: 80)),
-              ],
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            // App Header
+            TodoHeader(
+              incompleteTodosCount: incompleteTodos.length,
+              isDarkMode: widget.isDarkMode,
+              toggleTheme: widget.toggleTheme,
             ),
-          );
-        },
+
+            // Search Bar
+            TodoSearchBar(
+              controller: controller,
+              colorScheme: colorScheme,
+              onChanged: widget.setSearchQuery,
+            ),
+
+            // Active Tasks Section
+            if (incompleteTodos.isNotEmpty)
+              ActiveTasksSection(
+                incompleteTodos: incompleteTodos,
+                animation: animation,
+                toggleTodoStatus: widget.toggleTodoStatus,
+                deleteTodo: widget.deleteTodo,
+                updatePriority: widget.updatePriority,
+                updateTodo: widget.updateTodo,
+              ),
+
+            // Empty State
+            if (widget.todos.isEmpty)
+              EmptyStateWidget(
+                animation: animation,
+                theme: theme,
+                colorScheme: colorScheme,
+              ),
+
+            // Completed Tasks Section
+            if (completedTodos.isNotEmpty)
+              CompletedTasksSection(
+                completedTodos: completedTodos,
+                toggleTodoStatus: widget.toggleTodoStatus,
+                deleteTodo: widget.deleteTodo,
+                updatePriority: widget.updatePriority,
+                updateTodo: widget.updateTodo,
+                colorScheme: colorScheme,
+                theme: theme,
+              ),
+
+            // Bottom Space for FAB
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          ],
+        ),
       ),
     );
   }

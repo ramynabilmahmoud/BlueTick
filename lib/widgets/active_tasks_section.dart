@@ -6,7 +6,6 @@ import '../widgets/task_card.dart';
 class ActiveTasksSection extends StatelessWidget {
   final List<Todo> incompleteTodos;
   final Animation<double> animation;
-  final Orientation orientation;
   final Function(String) toggleTodoStatus;
   final Function(String) deleteTodo;
   final Function(String, Priority) updatePriority;
@@ -16,7 +15,6 @@ class ActiveTasksSection extends StatelessWidget {
     super.key,
     required this.incompleteTodos,
     required this.animation,
-    required this.orientation,
     required this.toggleTodoStatus,
     required this.deleteTodo,
     required this.updatePriority,
@@ -59,8 +57,8 @@ class ActiveTasksSection extends StatelessWidget {
                 end: Offset.zero,
               ).animate(animation),
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: orientation == Orientation.portrait ? 16.0 : 24.0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
                   vertical: 4.0,
                 ),
                 child: TaskCard(

@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/todo.dart';
-import 'repositories/todo_repository.dart';
 import 'screens/completed_tasks_screen.dart';
 import 'screens/scheduled_tasks_screen.dart';
 import 'screens/splash_screen.dart';
@@ -21,7 +20,6 @@ class TodoApp extends StatefulWidget {
 
 class TodoAppState extends State<TodoApp> {
   // Dependencies
-  final todoRepository = TodoRepository();
 
   // State
   bool isDarkMode = false;

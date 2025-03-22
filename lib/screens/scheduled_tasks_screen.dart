@@ -42,7 +42,6 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -73,10 +72,10 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
       ),
       body: Column(
         children: [
-          // Search bar
+          // Search bar with fixed padding
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: orientation == Orientation.portrait ? 16.0 : 24.0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
               vertical: 8.0,
             ),
             child: TextField(
@@ -99,47 +98,24 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
             ),
           ),
 
-          // Task list with different layout based on orientation
+          // Task list - using ListView
           Expanded(
-            child:
-                orientation == Orientation.portrait
-                    ? ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: sortedTodos.length,
-                      itemBuilder: (context, index) {
-                        final todo = sortedTodos[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: TaskCard(
-                            todo: todo,
-                            toggleStatus: widget.toggleTodoStatus,
-                            deleteTodo: widget.deleteTodo,
-                            onPriorityChanged: widget.updatePriority,
-                          ),
-                        );
-                      },
-                    )
-                    : GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-
-                      itemCount: sortedTodos.length,
-                      itemBuilder: (context, index) {
-                        final todo = sortedTodos[index];
-                        return TaskCard(
-                          todo: todo,
-                          toggleStatus: widget.toggleTodoStatus,
-                          deleteTodo: widget.deleteTodo,
-                          onPriorityChanged: widget.updatePriority,
-                        );
-                      },
-                    ),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: sortedTodos.length,
+              itemBuilder: (context, index) {
+                final todo = sortedTodos[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: TaskCard(
+                    todo: todo,
+                    toggleStatus: widget.toggleTodoStatus,
+                    deleteTodo: widget.deleteTodo,
+                    onPriorityChanged: widget.updatePriority,
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
