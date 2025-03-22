@@ -1,11 +1,9 @@
+import 'package:bluetick/models/todo.dart';
+import 'package:bluetick/widgets/task_card.dart';
 import 'package:flutter/material.dart';
-
-import '../models/todo.dart';
-import '../widgets/task_card.dart';
 
 class ActiveTasksSection extends StatelessWidget {
   final List<Todo> incompleteTodos;
-  final Animation<double> animation;
   final Function(String) toggleTodoStatus;
   final Function(String) deleteTodo;
   final Function(String, Priority) updatePriority;
@@ -14,7 +12,6 @@ class ActiveTasksSection extends StatelessWidget {
   const ActiveTasksSection({
     super.key,
     required this.incompleteTodos,
-    required this.animation,
     required this.toggleTodoStatus,
     required this.deleteTodo,
     required this.updatePriority,
@@ -49,26 +46,17 @@ class ActiveTasksSection extends StatelessWidget {
           }
 
           final todo = incompleteTodos[index - 1];
-          return FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.5, 0),
-                end: Offset.zero,
-              ).animate(animation),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 4.0,
-                ),
-                child: TaskCard(
-                  todo: todo,
-                  toggleStatus: toggleTodoStatus,
-                  deleteTodo: deleteTodo,
-                  onPriorityChanged: updatePriority,
-                  onUpdateTask: updateTodo,
-                ),
-              ),
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 4.0,
+            ),
+            child: TaskCard(
+              todo: todo,
+              toggleStatus: toggleTodoStatus,
+              deleteTodo: deleteTodo,
+              onPriorityChanged: updatePriority,
+              onUpdateTask: updateTodo,
             ),
           );
         },

@@ -1,6 +1,5 @@
+import 'package:bluetick/models/todo.dart';
 import 'package:flutter/material.dart';
-
-import '../models/todo.dart';
 
 class AddTaskDialog extends StatefulWidget {
   final Function(String, Priority) onAddTask;

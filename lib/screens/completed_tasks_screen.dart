@@ -1,8 +1,7 @@
+import 'package:bluetick/models/todo.dart';
+import 'package:bluetick/widgets/task_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../models/todo.dart';
-import '../widgets/task_card.dart';
 
 class CompletedTasksScreen extends StatefulWidget {
   final List<Todo> completedTodos;

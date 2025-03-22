@@ -1,7 +1,6 @@
+import 'package:bluetick/models/todo.dart';
+import 'package:bluetick/widgets/add_task_dialog.dart';
 import 'package:flutter/material.dart';
-
-import '../models/todo.dart';
-import '../widgets/add_task_dialog.dart';
 
 class TaskCard extends StatelessWidget {
   final Todo todo;

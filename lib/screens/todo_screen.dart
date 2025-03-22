@@ -1,14 +1,13 @@
+import 'package:bluetick/models/todo.dart';
+import 'package:bluetick/widgets/active_tasks_section.dart';
+import 'package:bluetick/widgets/add_task_dialog.dart';
 import 'package:bluetick/widgets/completed_tasks_section.dart';
+import 'package:bluetick/widgets/empty_state_widget.dart';
+import 'package:bluetick/widgets/todo_drawer.dart';
+import 'package:bluetick/widgets/todo_header.dart';
+import 'package:bluetick/widgets/todo_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../models/todo.dart';
-import '../widgets/active_tasks_section.dart';
-import '../widgets/add_task_dialog.dart';
-import '../widgets/empty_state_widget.dart';
-import '../widgets/todo_drawer.dart';
-import '../widgets/todo_header.dart';
-import '../widgets/todo_search_bar.dart';
 
 class TodoScreen extends StatefulWidget {
   final List<Todo> todos;
@@ -42,29 +41,16 @@ class TodoScreen extends StatefulWidget {
   State<TodoScreen> createState() => _TodoScreenState();
 }
 
-class _TodoScreenState extends State<TodoScreen>
-    with SingleTickerProviderStateMixin {
+class _TodoScreenState extends State<TodoScreen> {
   final controller = TextEditingController();
-  late AnimationController animationController;
-  late Animation<double> animation;
 
   @override
   void initState() {
     super.initState();
-    animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    animation = CurvedAnimation(
-      parent: animationController,
-      curve: Curves.easeInOut,
-    );
-    animationController.forward();
   }
 
   @override
   void dispose() {
-    animationController.dispose();
     super.dispose();
   }
 
@@ -113,7 +99,6 @@ class _TodoScreenState extends State<TodoScreen>
             if (incompleteTodos.isNotEmpty)
               ActiveTasksSection(
                 incompleteTodos: incompleteTodos,
-                animation: animation,
                 toggleTodoStatus: widget.toggleTodoStatus,
                 deleteTodo: widget.deleteTodo,
                 updatePriority: widget.updatePriority,
@@ -122,11 +107,7 @@ class _TodoScreenState extends State<TodoScreen>
 
             // Empty State
             if (widget.todos.isEmpty)
-              EmptyStateWidget(
-                animation: animation,
-                theme: theme,
-                colorScheme: colorScheme,
-              ),
+              EmptyStateWidget(theme: theme, colorScheme: colorScheme),
 
             // Completed Tasks Section
             if (completedTodos.isNotEmpty)
@@ -164,29 +145,25 @@ class _TodoScreenState extends State<TodoScreen>
   }
 
   Widget _buildAddTaskButton(BuildContext context, ColorScheme colorScheme) {
-    return AnimatedScale(
-      duration: const Duration(milliseconds: 200),
-      scale: 1.0,
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          showDialog<void>(
-            context: context,
-            builder: (context) {
-              return AddTaskDialog(
-                onAddTask: (title, priority) {
-                  widget.addTodo(title, priority);
-                },
-              );
-            },
-          );
-        },
-        backgroundColor: colorScheme.primaryContainer,
-        foregroundColor: colorScheme.onPrimaryContainer,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Task'),
-      ),
+    return FloatingActionButton.extended(
+      onPressed: () {
+        showDialog<void>(
+          context: context,
+          builder: (context) {
+            return AddTaskDialog(
+              onAddTask: (title, priority) {
+                widget.addTodo(title, priority);
+              },
+            );
+          },
+        );
+      },
+      backgroundColor: colorScheme.primaryContainer,
+      foregroundColor: colorScheme.onPrimaryContainer,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      icon: const Icon(Icons.add),
+      label: const Text('Add Task'),
     );
   }
 }

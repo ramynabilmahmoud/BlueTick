@@ -231,7 +231,7 @@ class TodoAppState extends State<TodoApp> {
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home:
           showSplash
-              ? SplashScreen(onAnimationComplete: onSplashComplete)
+              ? SplashScreen()
               : (isLoading
                   ? Scaffold(
                     body: Center(
