@@ -71,14 +71,6 @@ BlueTick supports extensive customization through the settings menu:
 - Configure notification preferences
 - Customize task categories
 
-Here's the corrected section of the README file based on your provided updates:
-
----
-
-Here's the updated section of the README file reflecting the use of **Stateful Widgets** for state management:
-
----
-
 ## 🔄 State Management
 
 The app utilizes **Stateful Widgets** for state management, ensuring smooth performance even with numerous tasks.
