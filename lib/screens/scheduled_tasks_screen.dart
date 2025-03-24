@@ -1,7 +1,6 @@
 import 'package:bluetick/models/todo.dart';
 import 'package:bluetick/widgets/task_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class ScheduledTasksScreen extends StatefulWidget {
   final List<Todo> pendingTodos;
@@ -53,11 +52,6 @@ class _ScheduledTasksScreenState extends State<ScheduledTasksScreen> {
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              widget.isDarkMode ? Brightness.light : Brightness.dark,
-        ),
         title: Text(
           'Scheduled Tasks',
           style: theme.textTheme.titleLarge?.copyWith(

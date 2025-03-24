@@ -96,7 +96,7 @@ class _AddTaskDialogState extends State<AddTaskDialog> {
 
             if (controller.text.trim().isNotEmpty) {
               if (isEditMode) {
-                widget.onUpdateTask?.call(
+                widget.onUpdateTask!(
                   widget.todoToEdit!.id,
                   controller.text.trim(),
                   selectedPriority,

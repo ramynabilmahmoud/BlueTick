@@ -23,30 +23,29 @@ class ActiveTasksSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          if (index == 0) {
-            // Section header
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Active Tasks',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Section header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Active Tasks',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
               ),
-            );
-          }
+            ],
+          ),
+        ),
 
-          final todo = incompleteTodos[index - 1];
-          return Padding(
+        // Task items
+        ...incompleteTodos.map(
+          (todo) => Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
               vertical: 4.0,
@@ -58,10 +57,9 @@ class ActiveTasksSection extends StatelessWidget {
               onPriorityChanged: updatePriority,
               onUpdateTask: updateTodo,
             ),
-          );
-        },
-        childCount: incompleteTodos.length + 1, // +1 for the header
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

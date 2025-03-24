@@ -24,36 +24,35 @@ class CompletedTasksSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          if (index == 0) {
-            // Section header
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Completed',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.tertiary,
-                    ),
-                  ),
-                  Text(
-                    '${completedTodos.length}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withAlpha(153),
-                    ),
-                  ),
-                ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Section header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Completed',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.tertiary,
+                ),
               ),
-            );
-          }
+              Text(
+                '${completedTodos.length}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withAlpha(153),
+                ),
+              ),
+            ],
+          ),
+        ),
 
-          final todo = completedTodos[index - 1];
-          return Padding(
+        // Task items
+        ...completedTodos.map(
+          (todo) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: TaskCard(
               todo: todo,
@@ -62,10 +61,9 @@ class CompletedTasksSection extends StatelessWidget {
               onPriorityChanged: updatePriority,
               onUpdateTask: updateTodo,
             ),
-          );
-        },
-        childCount: completedTodos.length + 1, // +1 for the header
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

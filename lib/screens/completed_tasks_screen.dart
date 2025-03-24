@@ -1,7 +1,6 @@
 import 'package:bluetick/models/todo.dart';
 import 'package:bluetick/widgets/task_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class CompletedTasksScreen extends StatefulWidget {
   final List<Todo> completedTodos;
@@ -32,11 +31,6 @@ class _CompletedTasksScreenState extends State<CompletedTasksScreen> {
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              widget.isDarkMode ? Brightness.light : Brightness.dark,
-        ),
         title: Text(
           'Completed Tasks',
           style: theme.textTheme.titleLarge?.copyWith(

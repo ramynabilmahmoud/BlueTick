@@ -79,22 +79,20 @@ class _TodoScreenState extends State<TodoScreen> {
       floatingActionButton: _buildAddTaskButton(context, colorScheme),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
+        child: ListView(
+          children: [
             // App Header
             TodoHeader(
               incompleteTodosCount: incompleteTodos.length,
               isDarkMode: widget.isDarkMode,
               toggleTheme: widget.toggleTheme,
             ),
-
             // Search Bar
             TodoSearchBar(
               controller: controller,
               colorScheme: colorScheme,
               onChanged: widget.setSearchQuery,
             ),
-
             // Active Tasks Section
             if (incompleteTodos.isNotEmpty)
               ActiveTasksSection(
@@ -104,11 +102,9 @@ class _TodoScreenState extends State<TodoScreen> {
                 updatePriority: widget.updatePriority,
                 updateTodo: widget.updateTodo,
               ),
-
             // Empty State
             if (widget.todos.isEmpty)
               EmptyStateWidget(theme: theme, colorScheme: colorScheme),
-
             // Completed Tasks Section
             if (completedTodos.isNotEmpty)
               CompletedTasksSection(
@@ -120,9 +116,7 @@ class _TodoScreenState extends State<TodoScreen> {
                 colorScheme: colorScheme,
                 theme: theme,
               ),
-
-            // Bottom Space for FAB
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            const SizedBox(height: 80), // Empty space for floating button
           ],
         ),
       ),
