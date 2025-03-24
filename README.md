@@ -1,5 +1,9 @@
 # BlueTick - Simple Todo App
 
+<p align="center">
+  <img src="assets/images/app_logo.svg" width="150" alt="BlueTick Logo">
+</p>
+
 A clean, modern todo app built with Flutter featuring an intuitive UI, dark mode support, and smooth animations.
 
 ## 📱 Screenshots
@@ -71,7 +75,7 @@ Here's the corrected section of the README file based on your provided updates:
 
 ---
 
-Here’s the updated section of the README file reflecting the use of **Stateful Widgets** for state management:
+Here's the updated section of the README file reflecting the use of **Stateful Widgets** for state management:
 
 ---
 
